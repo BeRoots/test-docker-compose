@@ -1,0 +1,75 @@
+version: "3.9"
+
+services:
+  # https://hub.docker.com/_/mysql
+  mysql:
+    container_name: ${COMPOSE_PROJECT_NAME}-mysql
+    build:
+      context: ./mysql/
+      dockerfile: Dockerfile
+    command: ["mysqld",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci",
+      "--default-authentication-plugin=mysql_native_password"]
+    restart: unless-stopped
+    tty: true
+    environment:
+      MYSQL_ROOT_PASSWORD: 123Boom!
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: myapp
+      MYSQL_PASSWORD: ChangeMe!
+#    domainname: my.${COMPOSE_PROJECT_DOMAINNAME}
+#    hostname: my
+    expose:
+      - 3306
+    networks:
+      - database1
+    volumes:
+      - type: bind
+        source: ./0_docker_volumes/mysql
+        target: /var/lib/mysql
+        read_only: false
+  # https://hub.docker.com/_/phpmyadmin
+  phpmyadmin:
+    container_name: ${COMPOSE_PROJECT_NAME}-pma
+    image: phpmyadmin
+    restart: unless-stopped
+    profiles:
+      - dev-pma
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 100M
+#    domainname: pma.${COMPOSE_PROJECT_DOMAINNAME}
+#    hostname: pma
+    ports:
+      - 8089:80
+    networks:
+      - database1
+    depends_on:
+      - mysql
+
+
+  front:
+    container_name: ${COMPOSE_PROJECT_NAME}-front
+    image: php:7.4-apache-buster
+    restart: always
+#    domainname: front.${COMPOSE_PROJECT_DOMAINNAME}
+#    hostname: front
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - database1
+      - frontend
+    volumes:
+      - type: bind
+        source: ../src/
+        target: /var/www/html
+        read_only: true
+    depends_on:
+      - mysql
+
+networks:
+  database1:
+  frontend:
