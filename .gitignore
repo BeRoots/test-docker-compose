@@ -1,7 +1,5 @@
 # [BEGIN Docker Project Commons]
-t1/0_docker/0_docker_volumes/*
 t1/0_docker/0_docker_volumes/mysql/*
-t2/0_docker/0_docker_volumes/*
 t2/0_docker/0_docker_volumes/mysql/*
 !.gitkeep
 # [END Docker Project Commons]
